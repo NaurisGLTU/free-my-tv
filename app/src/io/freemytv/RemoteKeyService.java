@@ -1,19 +1,36 @@
 package io.freemytv;
 
 import android.accessibilityservice.AccessibilityService;
+import android.content.Intent;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 
-/**
- * Sees the remote's keys before any app does, so the app buttons work from inside Netflix, Disney and the rest. The
- * system waits for it on every key (up to half a second), so it runs in a process of its own and does next to nothing.
- */
 public class RemoteKeyService extends AccessibilityService {
-    @Override protected boolean onKeyEvent(KeyEvent event) {
+    @Override
+    protected boolean onKeyEvent(KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_HOME) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN
+                    && event.getRepeatCount() == 0) {
+                Intent intent = new Intent(this, HomeActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                        | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                try {
+                    startActivity(intent);
+                } catch (RuntimeException error) {
+                    Log.e("FreeMyTV", "Could not open home", error);
+                    return false;
+                }
+            }
+            return true;
+        }
+
         return RemoteKeys.onKey(this, event);
     }
 
-    @Override public void onAccessibilityEvent(AccessibilityEvent event) {}
+    @Override
+    public void onAccessibilityEvent(AccessibilityEvent event) {}
 
-    @Override public void onInterrupt() {}
+    @Override
+    public void onInterrupt() {}
 }
